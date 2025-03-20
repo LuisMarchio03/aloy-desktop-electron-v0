@@ -5,8 +5,6 @@ import { X, Server, Activity, RefreshCw, Bot, Database } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 
-const { ipcRenderer } = window.require('electron')
-
 interface SystemInfo {
   cpu: {
     manufacturer: string
@@ -20,6 +18,10 @@ interface SystemInfo {
     free: string
     used: string
   }
+  network: {
+    upload: string
+    download: string
+  }
 }
 
 interface SystemStatusProps {
@@ -27,21 +29,80 @@ interface SystemStatusProps {
 }
 
 export default function SystemStatus({ onClose }: SystemStatusProps) {
+  const [loading, setLoading] = useState<boolean>(true)
+
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
+
+  // Discord Bot
+  const [discordBotConnectedServers, setDiscordBotConnectedServers] = useState<number>(0)
+  const [discordBotStatusService, setDiscordBotStatusService] = useState<boolean>(false)
+  const [discordBotLatency, setDiscordBotLatency] = useState<number>(0)
+  const [discordBotTotalCommandsToday, setDiscordBotTotalCommandsToday] = useState<number>(0)
+
+  // Status Apis Integrations
+  const [googleCalendar, setGoogleCalendar] = useState<boolean>(false)
+  const [notion, setNotion] = useState<boolean>(false)
+  const [discord, setDiscord] = useState<boolean>(false)
+  const [whatsapp, setWhatsapp] = useState<boolean>(false)
+
+  // Latency Apis Integrations
+  const [googleCalendarLatency, setGoogleCalendarLatency] = useState<number>(0)
+  const [notionLatency, setNotionLatency] = useState<number>(0)
+  const [discordLatency, setDiscordLatency] = useState<number>(0)
+  const [whatsappLatency, setWhatsappLatency] = useState<number>(0)
+
 
   useEffect(() => {
     const loadData = async () => {
-      const info = await ipcRenderer.invoke('get-system-info')
-      setSystemInfo(info)
+      //TODO: Get System Info from API (Go) 
+      setLoading(false)
     }
-    
+
     loadData()
     const interval = setInterval(loadData, 5000)
-    
+
     return () => clearInterval(interval)
   }, [])
 
-  if (!systemInfo) return null
+  const testApisIntegrationsStatus = () => {
+    //TODO: Test API Integrations Status (Dentro do serviço responsavel por comunicação com as APIs - Node.js)
+    setGoogleCalendar(true)
+    setNotion(true)
+    setDiscord(true)
+    setWhatsapp(true)
+  }
+
+  if (loading) {
+    return (
+      <motion.div
+        className="absolute top-[72px] left-0 right-0 z-20 bg-gray-950/95 border-b border-gray-800/50"
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: "auto" }}
+        exit={{ opacity: 0, height: 0 }}
+      >
+        <div className="p-6 ">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-light tracking-wider text-white flex items-center">
+              <Server className="h-4 w-4 mr-2 text-blue-400" />
+              SYSTEM STATUS
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-gray-400 hover:text-white rounded-full h-7 w-7"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-center h-32">
+            <div className="w-6 h-6 border-2 border-t-2 border-gray-800 rounded-full animate-spin" />
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
@@ -50,7 +111,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
     >
-      <div className="p-6">
+      <div className="p-6 ">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm font-light tracking-wider text-white flex items-center">
             <Server className="h-4 w-4 mr-2 text-blue-400" />
@@ -88,7 +149,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">CPU Usage</span>
-                  <span className="text-blue-300">{systemInfo.cpu.usage}%</span>
+                  <span className="text-blue-300">{systemInfo?.cpu?.usage}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-800 rounded-full mt-1.5 overflow-hidden">
                   <motion.div
@@ -103,7 +164,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">Memory</span>
-                  <span className="text-blue-300">{systemInfo.memory.used}GB / 16GB</span>
+                  <span className="text-blue-300">{systemInfo?.memory?.used}GB / 16GB</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-800 rounded-full mt-1.5 overflow-hidden">
                   <motion.div
@@ -157,12 +218,27 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
                 <h3 className="text-sm text-white">DISCORD BOT</h3>
               </div>
               <div className="flex items-center gap-1.5">
-                <motion.span
-                  className="w-1.5 h-1.5 rounded-full bg-green-500"
-                  animate={{ opacity: [1, 0.5, 1] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-                />
-                <span className="text-xs text-gray-400">ONLINE</span>
+
+
+                {discordBotStatusService ? (
+                  <>
+                    <motion.span
+                      className="w-1.5 h-1.5 rounded-full bg-green-500"
+                      animate={{ opacity: [1, 0.5, 1] }}
+                      transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+                    />
+                    <span className="text-xs text-gray-400">ONLINE</span>
+                  </>
+                ) : (
+                  <>
+                    <motion.span
+                      className="w-1.5 h-1.5 rounded-full bg-red-500"
+                      animate={{ opacity: [1, 0.5, 1] }}
+                      transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+                    />
+                    <span className="text-xs text-gray-400">OFFLINE</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -257,11 +333,17 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Status</span>
-                <span className="text-green-400">Online</span>
+                {googleCalendar ? (
+                  <span className="text-green-400">Online</span>
+                ) : (
+                  <span className="text-red-400">Offline</span>
+                )}
               </div>
               <div className="flex items-center justify-between text-xs mt-1">
                 <span className="text-gray-400">Latency</span>
-                <span className="text-blue-300">128ms</span>
+                <span className="text-blue-300">
+                  {googleCalendarLatency ? `${googleCalendarLatency}ms` : "N/A"}
+                </span>
               </div>
             </div>
 
@@ -276,11 +358,17 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Status</span>
-                <span className="text-green-400">Online</span>
+                {notion ? (
+                  <span className="text-green-400">Online</span>
+                ) : (
+                  <span className="text-red-400">Offline</span>
+                )}
               </div>
               <div className="flex items-center justify-between text-xs mt-1">
                 <span className="text-gray-400">Latency</span>
-                <span className="text-blue-300">156ms</span>
+                <span className="text-blue-300">
+                  {notionLatency ? `${notionLatency}ms` : "N/A"}
+                </span>
               </div>
             </div>
 
@@ -295,11 +383,17 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Status</span>
-                <span className="text-green-400">Online</span>
+                {discord ? (
+                  <span className="text-green-400">Online</span>
+                ) : (
+                  <span className="text-red-400">Offline</span>
+                )}
               </div>
               <div className="flex items-center justify-between text-xs mt-1">
                 <span className="text-gray-400">Latency</span>
-                <span className="text-blue-300">42ms</span>
+                <span className="text-blue-300">
+                  {discordLatency ? `${discordLatency}ms` : "N/A"}
+                </span>
               </div>
             </div>
 
@@ -314,11 +408,17 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Status</span>
-                <span className="text-green-400">Online</span>
+                {whatsapp ? (
+                  <span className="text-green-400">Online</span>
+                ) : (
+                  <span className="text-red-400">Offline</span>
+                )}
               </div>
               <div className="flex items-center justify-between text-xs mt-1">
                 <span className="text-gray-400">Latency</span>
-                <span className="text-blue-300">98ms</span>
+                <span className="text-blue-300">
+                  {whatsappLatency ? `${whatsappLatency}ms` : "N/A"}
+                </span>
               </div>
             </div>
           </div>

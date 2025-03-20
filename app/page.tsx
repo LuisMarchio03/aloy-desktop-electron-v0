@@ -141,7 +141,7 @@ export default function Home() {
 
       {/* Main interface container */}
       <motion.div
-        className={`relative z-10 flex flex-col w-full max-w-4xl mx-auto my-8 rounded-2xl overflow-hidden border border-gray-800/50 backdrop-blur-sm ${
+        className={`relative z-10 flex flex-col w-full max-w-4xl mx-auto my-8 rounded-2xl border border-gray-800/50 backdrop-blur-sm ${
           isFullscreen ? "fixed inset-4 max-w-none m-0" : "h-[85vh]"
         }`}
         initial={{ opacity: 0, y: 20 }}
@@ -359,7 +359,7 @@ export default function Home() {
                     exit={{ opacity: 0, height: 0 }}
                   >
                     <div className="p-6 bg-gray-950/90 border-t border-gray-900/30">
-                      <div className="rounded-lg overflow-hidden bg-gray-900/30 border border-purple-800/30 p-4">
+                      <div className="rounded-lg bg-gray-900/30 border border-purple-800/30 p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <motion.div

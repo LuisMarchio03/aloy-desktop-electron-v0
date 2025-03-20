@@ -20,7 +20,7 @@ const createWindow = () => {
       win.loadURL("app://-");
     });
   } else {
-    win.loadURL("http://localhost:3000");
+    win.loadURL("http://localhost:3001");
     win.webContents.openDevTools();
     win.webContents.on("did-fail-load", (e, code, desc) => {
       win.webContents.reloadIgnoringCache();
