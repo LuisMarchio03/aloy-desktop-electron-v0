@@ -3,12 +3,46 @@
 import { motion } from "framer-motion"
 import { X, Server, Activity, RefreshCw, Bot, Database } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+
+const { ipcRenderer } = window.require('electron')
+
+interface SystemInfo {
+  cpu: {
+    manufacturer: string
+    brand: string
+    speed: number
+    cores: number
+    usage: string
+  }
+  memory: {
+    total: string
+    free: string
+    used: string
+  }
+}
 
 interface SystemStatusProps {
   onClose: () => void
 }
 
 export default function SystemStatus({ onClose }: SystemStatusProps) {
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
+
+  useEffect(() => {
+    const loadData = async () => {
+      const info = await ipcRenderer.invoke('get-system-info')
+      setSystemInfo(info)
+    }
+    
+    loadData()
+    const interval = setInterval(loadData, 5000)
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  if (!systemInfo) return null
+
   return (
     <motion.div
       className="absolute top-[72px] left-0 right-0 z-20 bg-gray-950/95 border-b border-gray-800/50"
@@ -54,7 +88,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">CPU Usage</span>
-                  <span className="text-blue-300">32%</span>
+                  <span className="text-blue-300">{systemInfo.cpu.usage}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-800 rounded-full mt-1.5 overflow-hidden">
                   <motion.div
@@ -69,7 +103,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">Memory</span>
-                  <span className="text-blue-300">2.4 GB / 8 GB</span>
+                  <span className="text-blue-300">{systemInfo.memory.used}GB / 16GB</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-800 rounded-full mt-1.5 overflow-hidden">
                   <motion.div
