@@ -6,22 +6,12 @@ import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 
 interface SystemInfo {
-  cpu: {
-    manufacturer: string
-    brand: string
-    speed: number
-    cores: number
-    usage: string
-  }
-  memory: {
-    total: string
-    free: string
-    used: string
-  }
-  network: {
-    upload: string
-    download: string
-  }
+  cpu_usage?: number
+  memory_usage?: number
+  disk_usage?: number
+  net_sent?: number
+  net_recv?: number
+  ip?: string
 }
 
 interface SystemStatusProps {
@@ -51,18 +41,45 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
   const [discordLatency, setDiscordLatency] = useState<number>(0)
   const [whatsappLatency, setWhatsappLatency] = useState<number>(0)
 
+  useEffect(() => {
+    const loadData = async () => {
+      const response = await fetch('http://localhost:8080/api/system-info');
+      const systemInfoData = await response.json();
+      setSystemInfo({
+        ip: systemInfoData.ip,
+      });
+    }
+    loadData();
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
-      //TODO: Get System Info from API (Go) 
-      setLoading(false)
-    }
+      try {
+        const ws = new WebSocket("ws://localhost:8080/ws");
+        ws.onopen = () => {
+          console.log("Conectado ao WebSocket");
+        };
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log("Dados recebidos do WebSocket", data);
+          setSystemInfo({
+            cpu_usage: data.cpu_usage,
+            memory_usage: data.memory_usage,
+            disk_usage: data.disk_usage,
+            net_sent: data.net_sent,
+            net_recv: data.net_recv,
+          });
+        };
+      } catch (error) {
+        console.error('Erro ao carregar informações do sistema', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    loadData()
-    const interval = setInterval(loadData, 5000)
+    loadData();
+  }, []);
 
-    return () => clearInterval(interval)
-  }, [])
 
   const testApisIntegrationsStatus = () => {
     //TODO: Test API Integrations Status (Dentro do serviço responsavel por comunicação com as APIs - Node.js)
@@ -72,6 +89,10 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
     setWhatsapp(true)
   }
 
+  const kbToMb = (kb: number) =>  {
+    return kb / 1024;
+  }
+  
   if (loading) {
     return (
       <motion.div
@@ -133,7 +154,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
                 <Server className="h-4 w-4 text-blue-400 mr-2" />
-                <h3 className="text-sm text-white">NODE.JS SERVER</h3>
+                <h3 className="text-sm text-white">PC SERVER</h3>
               </div>
               <div className="flex items-center gap-1.5">
                 <motion.span
@@ -149,7 +170,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">CPU Usage</span>
-                  <span className="text-blue-300">{systemInfo?.cpu?.usage}%</span>
+                  <span className="text-blue-300">{systemInfo?.cpu_usage}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-800 rounded-full mt-1.5 overflow-hidden">
                   <motion.div
@@ -164,7 +185,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">Memory</span>
-                  <span className="text-blue-300">{systemInfo?.memory?.used}GB / 16GB</span>
+                  <span className="text-blue-300">{systemInfo?.memory_usage}GB / 16GB</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-800 rounded-full mt-1.5 overflow-hidden">
                   <motion.div
@@ -178,8 +199,33 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
 
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400">Network</span>
-                  <span className="text-blue-300">3.2 Mbps</span>
+                  <span className="text-gray-400">Network Upload</span>
+                  <span className="text-blue-300">{kbToMb(Number(systemInfo?.net_sent)).toFixed(2)} MB/s</span>
+                </div>
+                <div className="flex items-center gap-1 mt-1">
+                  {[...Array(8)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="flex-1 h-1 bg-blue-600 rounded-full"
+                      animate={{
+                        height: [1, Math.random() * 8 + 4, 1],
+                        opacity: [0.5, 1, 0.5],
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Number.POSITIVE_INFINITY,
+                        delay: i * 0.1,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-400">Network Download</span>
+                  <span className="text-blue-300">{kbToMb(Number(systemInfo?.net_recv)).toFixed(2)} MB/s</span>
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   {[...Array(8)].map((_, i) => (
@@ -205,7 +251,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
             <div className="mt-3 text-xs text-gray-500">
               <div className="flex justify-between">
                 <span>IP: 192.168.1.100</span>
-                <span>Uptime: 3d 12h 45m</span>
+                <span>Aloy Rodando à: 2h</span>
               </div>
             </div>
           </div>

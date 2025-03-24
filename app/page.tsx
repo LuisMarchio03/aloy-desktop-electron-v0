@@ -103,7 +103,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between relative overflow-hidden bg-black">
+    <main className="flex min-h-screen flex-col items-center justify-between relative bg-black">
       {/* Background effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(67,26,107,0.1),transparent_50%)]"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(16,79,138,0.05),transparent_70%)]"></div>
