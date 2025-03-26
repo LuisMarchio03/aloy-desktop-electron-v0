@@ -5,6 +5,7 @@ import { X, Server, Activity, RefreshCw, Bot, Database } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 
+
 interface SystemInfo {
   cpu_usage?: number
   memory_usage?: number
@@ -41,63 +42,28 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
   const [discordLatency, setDiscordLatency] = useState<number>(0)
   const [whatsappLatency, setWhatsappLatency] = useState<number>(0)
 
+
   useEffect(() => {
     const loadData = async () => {
-      const response = await fetch('http://localhost:8080/api/system-info');
-      const systemInfoData = await response.json();
-      setSystemInfo({
-        ip: systemInfoData.ip,
-      });
+      try {
+        const response = await fetch('http://localhost:8080/api/system-info');
+        const systemInfoData = await response.json();
+        setSystemInfo({
+          cpu_usage: systemInfoData.cpu_usage,
+          memory_usage: systemInfoData.memory_usage,
+          disk_usage: systemInfoData.disk_usage,
+          net_sent:  systemInfoData.net_sent,
+          net_recv: systemInfoData.net_recv,
+          ip: systemInfoData.ip
+        });
+      } catch (error) {
+        console.error('Failed to load system info', error);
+      } finally {
+        setLoading(false);
+      }
     }
     loadData();
   }, []);
-
- // useEffect(() => {
- //   const loadData = async () => {
- //     try {
-  //      const ws = new WebSocket("ws://localhost:8080/ws");
-       // ws.onopen = (event) => {
-       //   console.log("Conectado ao WebSocket - Teste");
-      //  }
-      //  ws.onmessage = (event) => {
-      //    console.log(event);
-      //    const data = JSON.parse(event.data);
-     //     console.log("Dados recebidos do WebSocket", data);
-       //   setSystemInfo({
-      //      cpu_usage: data.cpu_usage,
-      //      memory_usage: data.memory_usage,
-      //      disk_usage: data.disk_usage,
-     //       net_sent: data.net_sent,
-    //        net_recv: data.net_recv,
-   //       });
- //       };
-  //    } catch (error) {
- //       console.error('Erro ao carregar informações do sistema', error);
-      //} finally {
-      //  setLoading(false);
-    //  }
-  //  };
-//
-//    loadData();
-//  }, []);
-
-  
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080/ws');
-
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      console.log("TESTE", msg)
-      setSystemInfo((prevMessages) => [...prevMessages, msg]);
-    
-    };
-
-    return () => {
-     
-      setLoading(false);
-    };
-  }, []);
-
 
   const testApisIntegrationsStatus = () => {
     //TODO: Test API Integrations Status (Dentro do serviço responsavel por comunicação com as APIs - Node.js)
@@ -107,10 +73,6 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
     setWhatsapp(true)
   }
 
-  const kbToMb = (kb: number) =>  {
-    return kb / 1024;
-  }
-  
   if (loading) {
     return (
       <motion.div
@@ -218,7 +180,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">Network Upload</span>
-                  <span className="text-blue-300">{kbToMb(Number(systemInfo?.net_sent)).toFixed(2)} MB/s</span>
+                  <span className="text-blue-300">{systemInfo?.net_sent} MB/s</span>
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   {[...Array(8)].map((_, i) => (
@@ -243,7 +205,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
               <div className="bg-gray-900/50 rounded border border-gray-800/30 p-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">Network Download</span>
-                  <span className="text-blue-300">{kbToMb(Number(systemInfo?.net_recv)).toFixed(2)} MB/s</span>
+                  <span className="text-blue-300">{systemInfo?.net_recv} MB/s</span>
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   {[...Array(8)].map((_, i) => (
