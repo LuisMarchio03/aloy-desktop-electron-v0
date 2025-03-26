@@ -52,32 +52,50 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
     loadData();
   }, []);
 
+ // useEffect(() => {
+ //   const loadData = async () => {
+ //     try {
+  //      const ws = new WebSocket("ws://localhost:8080/ws");
+       // ws.onopen = (event) => {
+       //   console.log("Conectado ao WebSocket - Teste");
+      //  }
+      //  ws.onmessage = (event) => {
+      //    console.log(event);
+      //    const data = JSON.parse(event.data);
+     //     console.log("Dados recebidos do WebSocket", data);
+       //   setSystemInfo({
+      //      cpu_usage: data.cpu_usage,
+      //      memory_usage: data.memory_usage,
+      //      disk_usage: data.disk_usage,
+     //       net_sent: data.net_sent,
+    //        net_recv: data.net_recv,
+   //       });
+ //       };
+  //    } catch (error) {
+ //       console.error('Erro ao carregar informações do sistema', error);
+      //} finally {
+      //  setLoading(false);
+    //  }
+  //  };
+//
+//    loadData();
+//  }, []);
+
+  
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const ws = new WebSocket("ws://localhost:8080/ws");
-        ws.onopen = () => {
-          console.log("Conectado ao WebSocket");
-        };
-        ws.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          console.log("Dados recebidos do WebSocket", data);
-          setSystemInfo({
-            cpu_usage: data.cpu_usage,
-            memory_usage: data.memory_usage,
-            disk_usage: data.disk_usage,
-            net_sent: data.net_sent,
-            net_recv: data.net_recv,
-          });
-        };
-      } catch (error) {
-        console.error('Erro ao carregar informações do sistema', error);
-      } finally {
-        setLoading(false);
-      }
+    const ws = new WebSocket('ws://localhost:8080/ws');
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      console.log("TESTE", msg)
+      setSystemInfo((prevMessages) => [...prevMessages, msg]);
+    
     };
 
-    loadData();
+    return () => {
+     
+      setLoading(false);
+    };
   }, []);
 
 
