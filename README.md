@@ -43,14 +43,21 @@ Aloy é um assistente virtual projetado para centralizar e automatizar tarefas d
 ## Estrutura do Projeto
 ```
 /aloy-electron
-│── /src
+│   │── /app           # Telas a aplicação
 │   │── /components    # Componentes reutilizáveis
+│   │── /hooks         # Hooks personalizados
+│   │── /lib           # Config. de libs
 │   │── /services      # Integrações com APIs externas
 │   │── /utils         # Funções auxiliares
-│   └── main.js        # Processo principal do Electron
+│   │── /public        # Arquivos publicos do Next.js
+│   │── /styles        # Estilos personalizados com CSS puro
+│   │── /main          # Config. Electron
+│       └── main.js        # Processo principal do Electron
+│       └── preload.js        # Processo principal do Electron
 │── package.json       # Dependências do projeto
 │── README.md          # Documentação do projeto
 └── .gitignore         # Arquivos ignorados pelo Git
+└── .....Outros arquivos de configuração
 ```
 
 ## Contribuição
