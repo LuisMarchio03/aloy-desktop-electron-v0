@@ -65,37 +65,7 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
     loadData();
   }, []);
 
-<<<<<<< Updated upstream
-=======
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const ws = new WebSocket("ws://localhost:8080/ws");
-        ws.onopen = (event) => {
-          console.log("Conectado ao WebSocket - Teste");
-        }
-        ws.onmessage = (event) => {
-          console.log(event);
-          const data = JSON.parse(event.data);
-          console.log("Dados recebidos do WebSocket", data);
-          setSystemInfo({
-            cpu_usage: data.cpu_usage,
-            memory_usage: data.memory_usage,
-            disk_usage: data.disk_usage,
-            net_sent: data.net_sent,
-            net_recv: data.net_recv,
-          });
-        };
-      } catch (error) {
-        console.error('Erro ao carregar informações do sistema', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
->>>>>>> Stashed changes
+  
   const testApisIntegrationsStatus = () => {
     //TODO: Test API Integrations Status (Dentro do serviço responsavel por comunicação com as APIs - Node.js)
     setGoogleCalendar(true)
@@ -104,13 +74,10 @@ export default function SystemStatus({ onClose }: SystemStatusProps) {
     setWhatsapp(true)
   }
 
-<<<<<<< Updated upstream
-=======
   const kbToMb = (kb: number) => {
     return kb / 1024;
   }
 
->>>>>>> Stashed changes
   if (loading) {
     return (
       <motion.div
