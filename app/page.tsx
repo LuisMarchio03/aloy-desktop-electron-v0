@@ -61,27 +61,51 @@ export default function Home() {
     }
   }, [wakeWordDetected])
 
-  const handleSendMessage = () => {
-    if (input.trim() === "") return
-
+  const handleSendMessage = async () => {
+    // if (input.trim() === "") return
+  
+    const userMessage = input
+    
     // Add user message
-    setMessages([...messages, { text: input, isUser: true }])
+    setMessages([...messages, { text: userMessage, isUser: true }])
     setInput("")
-
-    // Simulate assistant typing
+  
+    // Show typing indicator
     setIsTyping(true)
-
-    // Simulate response after a delay
-    setTimeout(() => {
-      setIsTyping(false)
-      setMessages((prev) => [
-        ...prev,
-        {
-          text: `I'm processing your request: "${input}"`,
-          isUser: false,
+  
+    try {
+      // Make API call to get Aloy's response
+      const response = await fetch('http://localhost:8080/commands', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      ])
-    }, 1500)
+        body: JSON.stringify({ message: userMessage }),
+      })
+  
+      if (!response.ok) {
+        const errorData = await response.text()
+        throw new Error(`API Error: ${errorData || 'Failed to get response from Aloy'}`)
+      }
+  
+      const data = await response.json()
+        console.log(data)
+
+      // Add Aloy's response to messages
+      setIsTyping(false)
+      setMessages((prev) => [...prev, {
+        text: data.message || "I apologize, but I received an invalid response format.",
+        isUser: false,
+      }])
+    } catch (error) {
+      // Handle error and show error message
+      console.error('Error getting response from Aloy:', error)
+      setIsTyping(false)
+      setMessages((prev) => [...prev, {
+        text: "I apologize, but I'm having trouble connecting to my backend services. Please check if the server is running.",
+        isUser: false,
+      }])
+    }
   }
 
   const toggleVoiceMode = () => {
