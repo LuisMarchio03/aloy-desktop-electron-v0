@@ -4,7 +4,7 @@
 Implementar uma estrutura de documentação abrangente para o Aloy Desktop, utilizando ferramentas modernas e práticas recomendadas para documentação de aplicações desktop.
 
 ## 🏷️ Serviço
-aloy-desktop-electron-v0
+aloy-desktop-electron-v1
 
 ## 🌿 Nome da Branch
 feature/aloy-desktop-0001
